@@ -1,0 +1,67 @@
+---
+name: Build APBS_test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+env:
+  WIN_DEPENDENCIES_RELEASE: "v0.3.0"
+  WIN_TOOLCHAIN_FILE: '/c/vcpkg/scripts/buildsystems/vcpkg.cmake'
+
+jobs:
+  build:
+    name: Compile Code
+    runs-on: ${{ matrix.os }}
+    if: "!contains(github.event.head_commit.message, 'noci')"
+    strategy:
+      fail-fast: false
+      matrix:
+        # os: [ubuntu-latest]
+        # os: [macOS-latest]
+        os: [windows-latest]
+        # os: [ubuntu-latest, macOS-latest]
+        #os: [ubuntu-latest, windows-latest]
+        # os: [ubuntu-latest, macOS-latest, windows-latest]
+
+    steps:
+
+      - name: Add msbuild to PATH
+        if: startsWith(matrix.os, 'windows')  # Windows only
+        uses: microsoft/setup-msbuild@v1.0.2
+
+      - name: Checkout reposistory
+        uses: actions/checkout@master
+
+      - name: Install Window dependencies
+        if: startsWith(matrix.os, 'windows')  # Windows only
+        run: |
+          choco install wget
+          wget https://github.com/Electrostatics/cache/releases/download/${WIN_DEPENDENCIES_RELEASE}/apbs_dependencies_vcpkg.zip
+          7z x apbs_dependencies_vcpkg.zip -aoa -o/c/vcpkg
+          ls /c/vcpkg
+          vcpkg integrate install
+        shell: bash
+
+      - name: Configure for Windows
+        if: startsWith(matrix.os, 'windows')  # Windows only
+#        env:
+#          CMAKE_PREFIX_PATH: ${VCPKG_INSTALLATION_ROOT}/installed/x86-windows
+        run: |
+          mkdir -p build/Release
+          cd build
+          echo $CMAKE_PREFIX_PATH
+          cmake --trace-expand -DCMAKE_TOOLCHAIN_FILE=${WIN_TOOLCHAIN_FILE} -DVCPKG_TARGET_TRIPLET=x86-windows -DCMAKE_BUILD_TYPE=Release -DCMAKE_VERBOSE_MAKEFILE:BOOL=ON -DBUILD_TESTING=ON -DBUILD_TOOLS=ON -DCHECK_EPSILON=ON -DENABLE_FETK=OFF -DENABLE_BEM=ON -DENABLE_GEOFLOW=ON -DENABLE_INLINE=ON -DENABLE_PBAM=ON -DENABLE_PYTHON=OFF -DENABLE_TESTS=ON -DBUILD_SHARED_LIBS=OFF -DENABLE_VERBOSE_DEBUG=ON -DGET_NanoShaper=ON -G "Visual Studio 16 2019" -A x64 ..
+        shell: bash
+
+      - name: Build on Windows
+        if: startsWith(matrix.os, 'windows')  # Windows only
+        run: |
+          cd build
+          cmake --build . --config Release --parallel 1 --target install
+
+      - name: Setup tmate session
+        if: ${{ ! success() }}
+        uses: mxschmitt/action-tmate@v3
+
