@@ -105,7 +105,7 @@ target_link_libraries(hello_world ${Boost_LIBRARIES})
 ################################################################################
 # Handle the finite element solver dependencies                                #
 ################################################################################
-option(ENABLE_FETK "Enable the finite element solver" OFF)
+option(ENABLE_FETK "Enable the finite element solver" ON)
 
 
 ################################################################################
