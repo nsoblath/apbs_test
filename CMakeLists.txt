@@ -221,7 +221,7 @@ if(ENABLE_FETK)
             set(FETK_BUILD_COMMAND "cmake")
             set(FETK_BUILD_OPTS "--build . --config Release --parallel 1")
             execute_process( 
-                COMMAND cmake -DCMAKE_BUILD_TYPE=Release -DCREATE_PACKAGE=FALSE -DVCPKG_TARGET_TRIPLET=x86-windows -DCMAKE_TOOLCHAIN_FILE=${VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 16 2019" -A Win32 ..
+                COMMAND cmake -DCMAKE_BUILD_TYPE=Release -DCREATE_PACKAGE=FALSE -DVCPKG_TARGET_TRIPLET=x86-windows -DCMAKE_TOOLCHAIN_FILE=$ENV{VCPKG_INSTALLATION_ROOT}/scripts/buildsystems/vcpkg.cmake -G "Visual Studio 16 2019" -A Win32 ..
                 WORKING_DIRECTORY ${FETK_BUILD_PATH}
                 RESULT_VARIABLE FETK_BUILD_RETURN
             )
